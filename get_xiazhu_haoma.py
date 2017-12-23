@@ -53,13 +53,16 @@ class ProductCodes(object):
 
         def get_period():
             try:
-                rs = requests.get(self._url + str(property), timeout=10)
+                url = self._url + str(property)
+                rs = requests.get(url, timeout=10)
+
                 if rs.status_code == 200:
                     return rs.json()
                 else:
                     print('get xiazhu json satatus code: '+str(rs.status_code))
                     return None
             except Exception as e:
+                traceback.print_exc()
                 print("Get xhiazhu json except")
                 return None
 

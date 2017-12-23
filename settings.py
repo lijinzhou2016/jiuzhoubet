@@ -9,11 +9,11 @@ def get_time(format='%Y-%m-%d %H:%M:%S'):
 TOUZHU_JSON_DATA = 'touzhu_json_data'
 
 
-POSITON_FIFTH = 'fifth'
-POSTION_FOURTH = 'fourth'
+POSITON_FIFTH = "first"
+POSTION_FOURTH = "second"
 POSTION_THIRD = 'third'
-POSTION_SECOND = 'second'
-POSTION_FIRST = 'first'
+POSTION_SECOND = "fourth"
+POSTION_FIRST = "fifth"
 
 
 POSITON_FIFTH_ODDS = '5'
@@ -45,7 +45,7 @@ DEFAULT_PEILV_FILE = 'default_peilv.json'
 TIME_PERIODS_MAP_FILE = 'time_periods_map.json'
 
 # 获取时时彩投注号码接口
-BET_CODE_URL = 'http://112.74.193.112:8080/test/PredictionResultServlet?period='
+BET_CODE_URL = 'http://47.104.31.179/project/PredictionResultServlet?period='
 
 # 下注接口
 XIAZHU_URL = 'https://ts111c.storei.net/game/ajax/wagers/AddAnyTime.aspx'

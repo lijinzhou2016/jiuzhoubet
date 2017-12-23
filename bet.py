@@ -63,7 +63,7 @@ class Bets(object):
     def format_post_time(self):
         return "GMT+8 "+str(self.get_time())
 
-    def _post(self, url, headers, data, timeout=10):
+    def _post(self, url, headers, data, timeout=15):
         '''发送post请求
 
         :param url:
@@ -77,8 +77,11 @@ class Bets(object):
             if rs.status_code == 200:
                 data = rs.text
                 return data
+
             else:
                 self._logger.error("Response code: "+str(rs.status_code))
+                if rs.status_code == 502:
+                    return json.dumps({"status": settings.GAME_SUCCESS_STATUS})
                 return None
         except Exception as e:
             self._logger.error(str(e))
@@ -236,7 +239,7 @@ class Bets(object):
             self._logger.error("get json data error")
             return None
 
-    def format_24_197_post_data(self, code_data, peilv_data, gid):
+    def format_24_197_post_data(self, code_data, peilv_data, gid, amt):
         '''
 
         :return:
@@ -262,35 +265,29 @@ class Bets(object):
         encode_switch_map = self.get_switch_xiazhu_type_map()
 
         for data in code_data[settings.POSITON_FIFTH]:  # 万位投注号码列表
-            if data[settings.XIAZHU_CODE_MONEY_KEY] == 0:
-                continue
-            fifth.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
-            fifth_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
+            if data[settings.XIAZHU_CODE_MONEY_KEY] == amt:
+                fifth.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
+                fifth_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
 
         for data in code_data[settings.POSTION_FOURTH]:  # 千位投注号码列表
-            if data[settings.XIAZHU_CODE_MONEY_KEY] == 0:
-                continue
-            fourth.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
-            fourth_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
+            if data[settings.XIAZHU_CODE_MONEY_KEY] == amt:
+                fourth.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
+                fourth_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
 
         for data in code_data[settings.POSTION_THIRD]:  # 百位投注号码列表
-            if data[settings.XIAZHU_CODE_MONEY_KEY] == 0:
-                continue
-            third.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
-            third_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
+            if data[settings.XIAZHU_CODE_MONEY_KEY] == amt:
+                third.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
+                third_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
 
         for data in code_data[settings.POSTION_SECOND]:  # 十位投注号码列表
-            if data[settings.XIAZHU_CODE_MONEY_KEY] == 0:
-                continue
-            second.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
-            second_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
+            if data[settings.XIAZHU_CODE_MONEY_KEY] == amt:
+                second.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
+                second_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
 
         for data in code_data[settings.POSTION_FIRST]:  # 个位投注号码列表
-            if data[settings.XIAZHU_CODE_MONEY_KEY] == 0:
-                continue
-            first.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
-            first_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
-
+            if data[settings.XIAZHU_CODE_MONEY_KEY] == amt:
+                first.append(encode_switch_map[data[settings.XIAZHU_CODE_TYPE_KEY]])
+                first_name.append(data[settings.XIAZHU_CODE_TYPE_KEY])
 
         for num in fifth:  # 万位投注号码赔率
             fifth_odds.append(str(peilv_data[settings.POSITON_FIFTH_ODDS + num]))
@@ -338,8 +335,8 @@ class Bets(object):
                          ','.join(second_name),
                          ','.join(first_name)])
 
-        amt = code_data[settings.XIAZHU_CODE_MONEY_KEY]
-        self._logger.info(bType_name + " " +str(amt))
+        log_info = bType_name + " " + str(amt)
+        log.info(log_info)
 
         data = {
             "gid": gid,
@@ -357,18 +354,17 @@ class Bets(object):
 
         return {'betData': str(data)}
 
-    def xiadan(self, code_data, gid):
+    def xiadan(self, code_data, gid, amt):
         ''' 投注
 
         :return: 响应json
 
         '''
-
         log.info(gid)
         peilv_data = self.get_peilv()
         if peilv_data is None:
             peilv_data = self.get_default_peilv_map()
-        post_data = self.format_24_197_post_data(code_data, peilv_data, gid)
+        post_data = self.format_24_197_post_data(code_data, peilv_data, gid, amt)
         post_url = settings.XIAZHU_URL
         post_headers=self.get_headers()
         time.sleep(3)
@@ -448,53 +444,55 @@ if __name__ == "__main__":
             else:
                 before_gid = gid
                 if period.is_interval_10_minute():  # 若10分钟一期，延时2-3分钟购买
-                    delay.random_delay(100, 150)
-                else:       # 若5分钟一期，延时1-2分钟购买
-                    delay.random_delay(50, 100)
+                    delay.random_delay(120, 180)
+                else:       # 若5分钟一期，延时1分钟购买
+                    delay.delay(60)
 
         # 获取发号服务器的下注号码并保存到文件
-        status, note = product.save_current_json(str(gid))
-        if not status:
-            time.sleep(2)
+        print("begin to request bet code ...")
+        for t in range(12):
             status, note = product.save_current_json(str(gid))
-            if not status:
-                log.info(str(gid) + " " + note)
-                continue
+            if status:
+                print("request code success")
+                break
+            else:
+                delay.delay(10)
 
         # 读取保存下来的下注号码
         code_data = bets.get_propery_code_data()
         if code_data is None:
             continue
-        for loop in range(4):
-            try:
-                rs = bets.xiadan(code_data, gid)
 
-                if rs is None:
-                    log.error('Bet Server No Response')
-                    delay.random_delay(5, 10)
+        amt_list = code_data[settings.XIAZHU_CODE_MONEY_KEY]
+        for amt in amt_list:
+            for loop in range(4):
+                try:
+                    rs = bets.xiadan(code_data, gid, amt)
+                    if rs is None:
+                        log.error('Bet Server No Response')
+                        delay.random_delay(5, 10)
+                        continue
+                    if json.loads(rs)['status'] == settings.GAME_SUCCESS_STATUS:
+                        log.info("Success")
+                        break
+                    if json.loads(rs)['status'] == settings.GAME_CLOSE_STATUS:
+                        log.error('Game Over')
+                        break
+                    if json.loads(rs)['status'] == settings.GAME_SESSION_LOST_STATUS:
+                        log.error("Session over time")
+                        bets.set_cookie()
+                        continue
+                    if json.loads(rs)['status'] == settings.GAME_MONEY_LESS_STATUS:
+                        log.error("Touzhu Money less")
+                        break
+                    if json.loads(rs)['status'] == settings.GAME_ODDFALSE_STATUS:
+                        log.error("Odds exchange")
+                        delay.random_delay(5, 10)
+                        continue
+                    if json.loads(rs)['status'] == settings.GMAE_ACCOUNT_MONEY_LESS_STATUS:
+                        log.error("Your account has not enough money")
+                        util.pause()
+                        break
+                except Exception as e:
+                    log.error(str(traceback.print_exc()))
                     continue
-                if json.loads(rs)['status'] == settings.GAME_SUCCESS_STATUS:
-                    log.info("Success")
-                    break
-                if json.loads(rs)['status'] == settings.GAME_CLOSE_STATUS:
-                    log.error('Game Over')
-                    break
-                if json.loads(rs)['status'] == settings.GAME_SESSION_LOST_STATUS:
-                    log.error("Session over time")
-                    bets.set_cookie()
-                    continue
-                if json.loads(rs)['status'] == settings.GAME_MONEY_LESS_STATUS:
-                    log.error("Touzhu Money less")
-                    break
-                if json.loads(rs)['status'] == settings.GAME_ODDFALSE_STATUS:
-                    log.error("Odds exchange")
-                    delay.random_delay(5, 10)
-                    continue
-                if json.loads(rs)['status'] == settings.GMAE_ACCOUNT_MONEY_LESS_STATUS:
-                    log.error("Your account has not enough money")
-                    util.pause()
-                    break
-
-            except Exception as e:
-                log.error(str(traceback.print_exc()))
-                continue
