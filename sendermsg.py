@@ -2,10 +2,35 @@
 
 import requests
 import re
+import codecs
+import os
 
 YD = ['134', '135', '136', '137', '138', '139', '150', '151', '157', '158', '159', '187', '188']  # 移动
 DX = ['133', '153', '180', '189']  # 电信
 LT = ['130', '131', '132', '152', '155', '156', '185', '186']  # 联通
+
+# 本期投注结束
+MSG_GAME_OVER = "已结束"
+MSG_ODD_ERROR = "PL改变"
+MSG_SESSION_OVER = "session过期"
+MSG_ACCOUNT_LESS = "积分不够"
+# 请求彩票网站超时
+MSG_REQUESTS_BET_OVER = "请求超时状态"
+# 请求彩票网站502错误
+MSG_502_ERROR = "502状态"
+# 获取发号器数据失败
+MSG_REQUESTS_CODE_ERROR = "获取数据失败"
+
+def reader_phone():
+    if os.path.exists("./phone.txt"):
+        with codecs.open('phone.txt', 'r') as f:
+            ph = f.readline()
+            if len(ph)<11:
+                return None
+            else:
+                return ph.strip().replace("\n", "").split(",")
+    else:
+        return None
 
 class Phone(object):
     def __init__(self, phone=""):
@@ -50,9 +75,9 @@ class Phone(object):
 
 
 class Sender(object):
-    def __init__(self, phone, operatior):
+    def __init__(self, phone):
         self._sphones = phone
-        self._operatior = operatior
+        self._phone = Phone()
         self._api = "YidaInterface/SendSms.do?sname={0}&spwd={1}&sphones={2}&smsg={3}&msg_id={4}&scorpid={5}"
         self._sname = "zw2017"
         self._spwd = "111111"
@@ -62,13 +87,15 @@ class Sender(object):
     def send(self, msg):
         url = self.format_url(msg)
         try:
+            print("发送短信："+msg)
             rs = requests.get(url, timeout=10)
-            print(rs.text)
+            print("发送结果："+rs.text)
         except Exception as e:
             print(str(e))
 
     def format_url(self, msg):
-        server = self.get_server(self._operatior)
+        _operatior = self._phone.get_operatiot(self._sphones)
+        server = self.get_server(_operatior)
         return "/".join([server,
                          self._api.format(self._sname, self._spwd, self._sphones, msg, self._msg_id, self._scorpid)])
 

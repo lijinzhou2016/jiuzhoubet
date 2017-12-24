@@ -40,7 +40,7 @@ class ProductCodes(object):
         with open(self._file_path, 'w') as f:
             f.write(str(data))
 
-    def save_response(self, property, rs, ):
+    def save_response(self, property, rs):
         try:
             file_path = "./" +self.get_rs_path() + '/' + str(property) + '.json'
             with open(file_path, 'w')as f:
@@ -82,18 +82,11 @@ class ProductCodes(object):
         '''
         data = self.get_json(property)
         if data is None:  # 获取号码失败
-            data = json.dumps({'isbet':False})
-            self.write_json_to_file(data)
-            self.save_response(property, data)
-            return (False, 'Code Server No Response')
-        if not data['isbet']:  # 此号不买
-            self.write_json_to_file(data)
-            self.save_response(property, data)
-            return (False, "Not buy")
+            return False
         else:   # 正常获取
             self.write_json_to_file(json.dumps(data))
             self.save_response(property, data)
-            return (True, "Get bet Code Success")
+            return True
 
 if __name__ == "__main__":
     pr = ProductCodes()

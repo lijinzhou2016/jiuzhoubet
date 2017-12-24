@@ -22,6 +22,21 @@ from get_xiazhu_haoma import ProductCodes
 import util
 from myuuid import authour
 from config import DEFAULT_ODDS, ODDS_FORMAT, TOUZHU_TYPE_ENCODE
+from sendermsg import reader_phone, Phone, Sender
+import sendermsg
+
+ph_list = reader_phone()
+if not ph_list:
+    print(u"请在当前了目录配置phone.txt")
+    print(u"配置完成后重启应用")
+    time.sleep(5)
+ph_obj = Phone()
+
+def send_msg(msg):
+    for ph in ph_list:
+        sender = Sender(ph)
+        sender.send(msg)
+        time.sleep(3)
 
 def get_time(format='%Y-%m-%d %H:%M:%S'):
     return time.strftime(format, time.localtime(time.time()))
@@ -43,7 +58,6 @@ def save_session_to_file(session):
             f.write(session)
     except Exception as e:
         print(traceback.print_exc())
-
 
 class Bets(object):
 
@@ -80,8 +94,9 @@ class Bets(object):
 
             else:
                 self._logger.error("Response code: "+str(rs.status_code))
+                # send_msg(sendermsg.MSG_502_ERROR)  # 短信通知， 502错误
                 if rs.status_code == 502:
-                    return json.dumps({"status": settings.GAME_SUCCESS_STATUS})
+                    return json.dumps({"status": "502"})
                 return None
         except Exception as e:
             self._logger.error(str(e))
@@ -155,7 +170,11 @@ class Bets(object):
             return None
 
     def set_headers(self):  # 设置headers
-        self._headers = {'Cookie': self._cookie}
+        self._headers = {'Cookie': self._cookie,
+                         "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36",
+                         "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                         "x-requested-with": "XMLHttpRequest"
+                         }
 
     def get_headers(self):  # 获取headers
         return self._headers
@@ -450,17 +469,29 @@ if __name__ == "__main__":
 
         # 获取发号服务器的下注号码并保存到文件
         print("begin to request bet code ...")
-        for t in range(12):
-            status, note = product.save_current_json(str(gid))
-            if status:
-                print("request code success")
-                break
-            else:
+        REQUESTS_TIMES = 12
+        for t in range(REQUESTS_TIMES):
+            status = product.save_current_json(str(gid))
+            if status:  # 请求发号器接口成功
+                # 读取保存下来的下注号码
+                code_data = bets.get_propery_code_data()
+                if code_data.get("hasDate"):
+                    print("request code success")
+                    break
+                else:
+                    if t == REQUESTS_TIMES - 1:
+                        send_msg(sendermsg.MSG_REQUESTS_CODE_ERROR)
+                        break
+                    delay.delay(10)
+                    continue
+            else:  # 请求发号器接口失败
+                print(u"请求发号器接口失败")
+                send_msg(str(gid)[-3:]+":"+"请求FHQ接口失败")
                 delay.delay(10)
 
-        # 读取保存下来的下注号码
-        code_data = bets.get_propery_code_data()
-        if code_data is None:
+        # code_data = bets.get_propery_code_data()
+        if not code_data["isbet"]:
+            log.info(str(gid)+" Not buy")
             continue
 
         amt_list = code_data[settings.XIAZHU_CODE_MONEY_KEY]
@@ -469,6 +500,7 @@ if __name__ == "__main__":
                 try:
                     rs = bets.xiadan(code_data, gid, amt)
                     if rs is None:
+                        send_msg(str(gid)[-3:]+":"+sendermsg.MSG_REQUESTS_BET_OVER)
                         log.error('Bet Server No Response')
                         delay.random_delay(5, 10)
                         continue
@@ -476,22 +508,30 @@ if __name__ == "__main__":
                         log.info("Success")
                         break
                     if json.loads(rs)['status'] == settings.GAME_CLOSE_STATUS:
+                        send_msg(str(gid)[-3:]+":"+sendermsg.MSG_GAME_OVER)
                         log.error('Game Over')
                         break
                     if json.loads(rs)['status'] == settings.GAME_SESSION_LOST_STATUS:
+                        send_msg(str(gid)[-3:]+":"+sendermsg.MSG_SESSION_OVER)
                         log.error("Session over time")
                         bets.set_cookie()
                         continue
                     if json.loads(rs)['status'] == settings.GAME_MONEY_LESS_STATUS:
                         log.error("Touzhu Money less")
                         break
-                    if json.loads(rs)['status'] == settings.GAME_ODDFALSE_STATUS:
+                    if json.loads(rs)['status'] == settings.GAME_ODD_FALSE_STATUS:
+                        send_msg(str(gid)[-3:]+":"+sendermsg.MSG_ODD_ERROR)
                         log.error("Odds exchange")
                         delay.random_delay(5, 10)
                         continue
                     if json.loads(rs)['status'] == settings.GMAE_ACCOUNT_MONEY_LESS_STATUS:
+                        send_msg(str(gid)[-3:] + ":" + sendermsg.MSG_ACCOUNT_LESS)
                         log.error("Your account has not enough money")
                         util.pause()
+                        break
+                    if json.loads(rs)['status'] == "502":
+                        send_msg(str(gid)[-3:] + ":" + sendermsg.MSG_502_ERROR)
+                        log.error("502 error")
                         break
                 except Exception as e:
                     log.error(str(traceback.print_exc()))

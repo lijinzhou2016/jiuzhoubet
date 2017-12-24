@@ -22,8 +22,8 @@ missing module named urllib.unquote - imported by urllib, requests.compat
 missing module named urllib.quote - imported by urllib, requests.compat
 missing module named grp - imported by shutil, tarfile, D:\PycharmProjects\jiuzhoubet\bet.py
 missing module named pwd - imported by posixpath, shutil, tarfile, http.server, webbrowser, netrc, getpass, D:\PycharmProjects\jiuzhoubet\bet.py
-missing module named _dummy_threading - imported by dummy_threading, D:\PycharmProjects\jiuzhoubet\bet.py
 missing module named 'org.python' - imported by copy, D:\PycharmProjects\jiuzhoubet\bet.py, xml.sax
+missing module named _dummy_threading - imported by dummy_threading, D:\PycharmProjects\jiuzhoubet\bet.py
 missing module named backports - imported by urllib3.packages.ssl_match_hostname
 missing module named _abcoll - imported by urllib3.packages.ordered_dict
 missing module named dummy_thread - imported by urllib3.packages.ordered_dict

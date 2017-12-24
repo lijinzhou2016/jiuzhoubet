@@ -69,7 +69,7 @@ lType=197
 
 GAME_CLOSE_STATUS = 'Msg_GameClose'  # 投注通道关闭状态码
 GAME_SUCCESS_STATUS = 'Msg_Success'  # 投注成功状态码
-GAME_ODDFALSE_STATUS = "Msg_OddChg"  # 赔率错误状态码
+GAME_ODD_FALSE_STATUS = "Msg_OddChg"  # 赔率错误状态码
 GAME_SESSION_LOST_STATUS = 'Msg_Logout'  #session过期状态码
 GAME_MONEY_LESS_STATUS = 'Msg_ScMin'  # 投注金额小于最低值状态码
 GMAE_ACCOUNT_MONEY_LESS_STATUS = 'Msg_NoBalance'  # 账号金额不足状态码
