@@ -171,9 +171,7 @@ class Bets(object):
 
     def set_headers(self):  # 设置headers
         self._headers = {'Cookie': self._cookie,
-                         "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36",
-                         "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-                         "x-requested-with": "XMLHttpRequest"
+                         "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36"
                          }
 
     def get_headers(self):  # 获取headers
@@ -386,7 +384,7 @@ class Bets(object):
         post_data = self.format_24_197_post_data(code_data, peilv_data, gid, amt)
         post_url = settings.XIAZHU_URL
         post_headers=self.get_headers()
-        time.sleep(3)
+        # time.sleep(3)
         return self._post(post_url, data=post_data, headers=post_headers)
 
 
@@ -476,6 +474,9 @@ if __name__ == "__main__":
                 # 读取保存下来的下注号码
                 code_data = bets.get_propery_code_data()
                 if code_data.get("hasDate"):
+                    if code_data['period'] != str(gid):  # 期数不相等
+                        delay.delay(10)
+                        continue
                     print("request code success")
                     break
                 else:
@@ -493,6 +494,7 @@ if __name__ == "__main__":
         if not code_data["isbet"]:
             log.info(str(gid)+" Not buy")
             continue
+
 
         amt_list = code_data[settings.XIAZHU_CODE_MONEY_KEY]
         for amt in amt_list:
