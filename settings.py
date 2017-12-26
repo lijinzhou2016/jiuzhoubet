@@ -53,6 +53,9 @@ XIAZHU_URL = 'https://ts111c.storei.net/game/ajax/wagers/AddAnyTime.aspx'
 # 获取资源接口
 GET_DATA_URL = 'https://nsb5.wf77.net/game/ajax/OutputIOContext.aspx'
 
+#获取money接口
+REQUESTS_MONEY_URL = "https://nsb5.wf77.net/share/ajax/UserBalance.aspx"
+
 
 # 24: 重庆时时彩
 # 26: 天津时时彩

@@ -180,7 +180,8 @@ class Bets(object):
     def set_cookie(self):  # 获取时时彩网站登录session
         session_id = str(input('Please Input session:')).strip()
         save_session_to_file(session_id)
-        self._cookie = 'ASP.NET_SessionId=' + session_id
+        self._cookie = 'ASP.NET_SessionId' \
+                       '=' + session_id
         self.set_headers()
         print(self._headers)
 
@@ -189,6 +190,22 @@ class Bets(object):
 
     def send_msg(self, msg=''):
         print('发短信 '+ str(msg))
+
+    def get_money(self):
+        # {"balance": 274.4400}
+
+        data = {"dataType": "UB"}
+        url = settings.REQUESTS_MONEY_URL
+        try:
+            rs = requests.post(url, data=data, headers=self.get_headers(), timeout=10)
+            if rs.status_code == 200:
+                return float(rs.json()['balance'])
+            else:
+                print("requests money status code "+str(rs.status_code))
+                return None
+        except Exception as e:
+            print(e)
+            return None
 
     def get_qishu(self):
         '''
@@ -444,6 +461,16 @@ if __name__ == "__main__":
             exit(-1)
 
     while True:
+
+        for i in range(3):
+            money = bets.get_money()
+            if money:
+                log.info("Account Money: "+str(money))
+                break
+            if i == 2:
+                log.error("Get Money Failed")
+            time.sleep(3)
+
         # 1：55 ~ 9：50 之间，等待
         while period.is_sleep_time():
             delay.display_time()
@@ -454,6 +481,7 @@ if __name__ == "__main__":
             delay.display_time("   wait " + str(int(gid)+1))
             gid = period.get_periods()  # 获取当前期数
 
+        # 根据投注时间间隔不同进行不同的延时
         if int(gid) > int(before_gid):
             print()
             if int(before_gid) == 0:
@@ -507,7 +535,7 @@ if __name__ == "__main__":
                         delay.random_delay(5, 10)
                         continue
                     if json.loads(rs)['status'] == settings.GAME_SUCCESS_STATUS:
-                        log.info("Success")
+                        log.info("Bet Success")
                         break
                     if json.loads(rs)['status'] == settings.GAME_CLOSE_STATUS:
                         send_msg(str(gid)[-3:]+":"+sendermsg.MSG_GAME_OVER)
@@ -532,9 +560,30 @@ if __name__ == "__main__":
                         util.pause()
                         break
                     if json.loads(rs)['status'] == "502":
+                        f = True
+
+                        for i in range(3): # 获取三次金额，保证正确率
+                            m = bets.get_money()
+                            if m:
+                                break
+                            if i == 2:
+                                f = False
+                            time.sleep(3)
+                        if not f:
+                            continue
+
+                        if m:
+                            if m<money:
+                                log.info("Bet Success")
+                                break
+                            if m == money:
+                                continue
+                            if not money:
+                                continue
+
                         send_msg(str(gid)[-3:] + ":" + sendermsg.MSG_502_ERROR)
                         log.error("502 error")
-                        break
+
                 except Exception as e:
                     log.error(str(traceback.print_exc()))
                     continue
