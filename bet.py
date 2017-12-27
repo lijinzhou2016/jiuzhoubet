@@ -461,16 +461,6 @@ if __name__ == "__main__":
             exit(-1)
 
     while True:
-
-        for i in range(3):
-            money = bets.get_money()
-            if money:
-                log.info("Account Money: "+str(money))
-                break
-            if i == 2:
-                log.error("Get Money Failed")
-            time.sleep(3)
-
         # 1：55 ~ 9：50 之间，等待
         while period.is_sleep_time():
             delay.display_time()
@@ -526,6 +516,15 @@ if __name__ == "__main__":
 
         amt_list = code_data[settings.XIAZHU_CODE_MONEY_KEY]
         for amt in amt_list:
+            for i in range(3):
+                money = bets.get_money()
+                if money:
+                    log.info("Before Bet Money: " + str(money))
+                    break
+                if i == 2:
+                    log.error("Get Money Failed")
+                time.sleep(3)
+
             for loop in range(4):
                 try:
                     rs = bets.xiadan(code_data, gid, amt)
@@ -561,29 +560,34 @@ if __name__ == "__main__":
                         break
                     if json.loads(rs)['status'] == "502":
                         f = True
-
                         for i in range(3): # 获取三次金额，保证正确率
                             m = bets.get_money()
                             if m:
                                 break
                             if i == 2:
                                 f = False
+                                m=None
                             time.sleep(3)
-                        if not f:
-                            continue
 
                         if m:
                             if m<money:
                                 log.info("Bet Success")
                                 break
-                            if m == money:
-                                continue
-                            if not money:
-                                continue
 
-                        send_msg(str(gid)[-3:] + ":" + sendermsg.MSG_502_ERROR)
-                        log.error("502 error")
+                        if not m:
+                            if loop == 3:
+                                send_msg(str(gid)[-3:] + ":" + sendermsg.MSG_502_ERROR)
+                                log.error("502 error")
 
                 except Exception as e:
                     log.error(str(traceback.print_exc()))
                     continue
+
+            for i in range(3):
+                time.sleep(5)
+                money = bets.get_money()
+                if money:
+                    log.info("After Bet Money: " + str(money))
+                    break
+                time.sleep(3)
+
