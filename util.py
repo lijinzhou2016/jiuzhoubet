@@ -33,6 +33,15 @@ class Periods(object):
         self.min = 0
         self.periods = ''
 
+    def get_msg_note_time(self):
+        self.refresh_time()
+        if (self.hour==10 and self.min < 10) or (self.hour==12 and self.min<10) or \
+                (self.hour==3 and self.min<10) or (self.hour==6 and self.min<10) or\
+                (self.hour==9 and self.min<10) or (self.hour==0 and self.min<5):
+            return True
+        else:
+            return False
+
     def is_interval_10_minute(self):
         self.refresh_time()
         if (self.hour > 9 and self.hour < 22) or (self.hour==9 and self.min>=50):

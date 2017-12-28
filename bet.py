@@ -460,6 +460,14 @@ if __name__ == "__main__":
         if i == 2:
             exit(-1)
 
+    yuanshi_money=""
+    for i in range(3):
+        yuanshi_money = bets.get_money()
+        if yuanshi_money:
+            send_msg("开始："+str(yuanshi_money))
+            break
+        time.sleep(3)
+
     while True:
         # 1：55 ~ 9：50 之间，等待
         while period.is_sleep_time():
@@ -470,6 +478,14 @@ if __name__ == "__main__":
         while int(gid) == int(before_gid):
             delay.display_time("   wait " + str(int(gid)+1))
             gid = period.get_periods()  # 获取当前期数
+
+        for i in range(3):
+            money = bets.get_money()
+            if money:
+                send_msg(str(money-yuanshi_money))
+                break
+            time.sleep(3)
+
 
         # 根据投注时间间隔不同进行不同的延时
         if int(gid) > int(before_gid):

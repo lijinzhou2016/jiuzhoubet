@@ -9,6 +9,10 @@ YD = ['134', '135', '136', '137', '138', '139', '150', '151', '157', '158', '159
 DX = ['133', '153', '180', '189']  # 电信
 LT = ['130', '131', '132', '152', '155', '156', '185', '186']  # 联通
 
+#短信通道用户名密码
+USER = "zw2017"
+PWD = "11111"
+
 # 本期投注结束
 MSG_GAME_OVER = "已结束"
 MSG_ODD_ERROR = "PL改变"
@@ -79,8 +83,8 @@ class Sender(object):
         self._sphones = phone
         self._phone = Phone()
         self._api = "YidaInterface/SendSms.do?sname={0}&spwd={1}&sphones={2}&smsg={3}&msg_id={4}&scorpid={5}"
-        self._sname = "zw2017"
-        self._spwd = "111111"
+        self._sname = USER
+        self._spwd = PWD
         self._msg_id = ""
         self._scorpid = ""
 
