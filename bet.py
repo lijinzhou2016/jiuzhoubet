@@ -30,6 +30,7 @@ if not ph_list:
     print(u"请在当前了目录配置phone.txt")
     print(u"配置完成后重启应用")
     time.sleep(5)
+    exit(-1)
 ph_obj = Phone()
 
 def send_msg(msg):

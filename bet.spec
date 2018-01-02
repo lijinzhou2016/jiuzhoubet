@@ -3,8 +3,8 @@
 block_cipher = None
 
 
-a = Analysis(['bet.py', 'settings.py', 'util.py', 'mylogger.py', 'get_xiazhu_haoma.py', 'myuuid.py', 'config.py'],
-             pathex=['D:\\PycharmProjects\\jiuzhoubet'],
+a = Analysis(['bet.py', 'settings.py', 'util.py', 'mylogger.py', 'get_xiazhu_haoma.py', 'myuuid.py', 'config.py', 'users.py'],
+             pathex=['D:\\pycharm\\jiuzhoubet'],
              binaries=[],
              datas=[],
              hiddenimports=[],
