@@ -178,12 +178,12 @@ class Bets(object):
         return self._headers
 
     def set_cookie(self):  # 获取时时彩网站登录session
-        session_id = str(input('Please Input session:')).strip()
+        session_id = str(input('请输入session:')).strip()
         save_session_to_file(session_id)
         self._cookie = 'ASP.NET_SessionId' \
                        '=' + session_id
         self.set_headers()
-        print(self._headers)
+        # print(self._headers)
 
     def test_cookie(self):
         return self.get_peilv()
@@ -452,6 +452,13 @@ if __name__ == "__main__":
     gid = period.get_periods()
     before_gid = 0
 
+    from users import Users
+    user = Users()
+    if not user.check_user():
+        print("此账号不存在")
+        time.sleep(3)
+        exit(-1)
+
     for i in range(3):
         if bets.test_cookie() is None:
             bets.set_cookie()
@@ -469,13 +476,12 @@ if __name__ == "__main__":
         time.sleep(3)
 
     while True:
-        # 1：55 ~ 9：50 之间，等待
-        while period.is_sleep_time():
-            delay.display_time()
 
+        while period.is_sleep_time():  # 1：55 ~ 9：50 之间，等待
+            delay.display_time()
         print()
-        # 等待进入新的一期购买时间
-        while int(gid) == int(before_gid):
+
+        while int(gid) == int(before_gid):  # 等待进入新的一期购买时间
             delay.display_time("   wait " + str(int(gid)+1))
             gid = period.get_periods()  # 获取当前期数
 
