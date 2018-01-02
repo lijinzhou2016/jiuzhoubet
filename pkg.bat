@@ -1,1 +1,1 @@
-pyinstaller -F --i bitbug_favicon.ico bet.py settings.py util.py mylogger.py get_xiazhu_haoma.py myuuid.py config.py
+pyinstaller -F --i bitbug_favicon.ico bet.py settings.py util.py mylogger.py get_xiazhu_haoma.py myuuid.py config.py users.py
