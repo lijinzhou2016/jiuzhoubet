@@ -8,6 +8,7 @@ url = "http://47.104.31.179/project/CheckPhone?phone={0}"
 class Users(object):
     def __init__(self):
         self.phone = Phone()
+        self._ph = ""
 
     def input_user(self):
         for i in range(3):
@@ -24,10 +25,19 @@ class Users(object):
             try:
                 rs = requests.get(url.format(user), timeout=10)
                 if rs.status_code == 200:
+                    self._ph = user
+                    self.save_phone(user)
                     return rs.json()["result"]
             except Exception as e:
                 print(str(e))
                 return False
+    def get_phone(self):
+        return self._ph
+
+    def save_phone(self, user):
+        with open(".user", 'w') as f:
+            f.write(user)
+
 
 if __name__ == "__main__":
     u = Users()

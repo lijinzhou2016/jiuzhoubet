@@ -25,6 +25,8 @@ from config import DEFAULT_ODDS, ODDS_FORMAT, TOUZHU_TYPE_ENCODE
 from sendermsg import reader_phone, Phone, Sender
 import sendermsg
 
+phone=''
+
 ph_list = reader_phone()
 if not ph_list:
     print(u"请在当前了目录配置phone.txt")
@@ -401,6 +403,7 @@ class Bets(object):
             peilv_data = self.get_default_peilv_map()
         post_data = self.format_24_197_post_data(code_data, peilv_data, gid, amt)
         post_url = settings.XIAZHU_URL
+        # print(post_data)
         post_headers=self.get_headers()
         # time.sleep(3)
         return self._post(post_url, data=post_data, headers=post_headers)
@@ -448,7 +451,7 @@ if __name__ == "__main__":
 
     bets = Bets()
     period = Periods()
-    product = ProductCodes()
+
 
     gid = period.get_periods()
     before_gid = 0
@@ -459,7 +462,8 @@ if __name__ == "__main__":
         print("此账号不存在")
         time.sleep(3)
         exit(-1)
-
+    phone = user.get_phone()
+    product = ProductCodes()
     for i in range(3):
         if bets.test_cookie() is None:
             bets.set_cookie()
@@ -486,12 +490,13 @@ if __name__ == "__main__":
             delay.display_time("   wait " + str(int(gid)+1))
             gid = period.get_periods()  # 获取当前期数
 
-        for i in range(3):
-            money = bets.get_money()
-            if money:
-                send_msg(str(money-yuanshi_money))
-                break
-            time.sleep(3)
+        if period.get_msg_note_time():
+            for i in range(3):
+                money = bets.get_money()
+                if money:
+                    send_msg(str(money-yuanshi_money))
+                    break
+                time.sleep(3)
 
 
         # 根据投注时间间隔不同进行不同的延时
@@ -593,7 +598,7 @@ if __name__ == "__main__":
                             time.sleep(3)
 
                         if m:
-                            if m<money:
+                            if m < money or money > m:
                                 log.info("Bet Success")
                                 break
 

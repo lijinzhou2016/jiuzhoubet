@@ -19,7 +19,9 @@ def get_time(format='%Y-%m-%d %H:%M:%S'):
 
 class ProductCodes(object):
     def __init__(self, url=settings.BET_CODE_URL, file_path=os.path.join(json_dir, settings.PROPERTY_CODE_FILE)):
-        self._url = url
+        with open(".user", 'r') as f:
+            self.user = f.read()
+        self._url = url.format(self.user)
         self._file_path = file_path
         self._rs_path = get_time('%Y%m%d')
 
@@ -53,6 +55,7 @@ class ProductCodes(object):
 
         def get_period():
             try:
+
                 url = self._url + str(property)
                 rs = requests.get(url, timeout=10)
 
