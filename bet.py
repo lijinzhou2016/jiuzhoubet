@@ -513,7 +513,7 @@ if __name__ == "__main__":
 
         # 获取发号服务器的下注号码并保存到文件
         print("begin to request bet code ...")
-        REQUESTS_TIMES = 12
+        REQUESTS_TIMES = 24
         for t in range(REQUESTS_TIMES):
             status = product.save_current_json(str(gid))
             if status:  # 请求发号器接口成功
